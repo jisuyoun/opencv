@@ -50,19 +50,17 @@ def load_and_analyze_reference_image(reference_image_path):
     정상 이미지 파일을 로드하고, 평균 채도를 계산하여 reference_avg_saturation에 저장한다.
     """
     global reference_avg_saturation
-    print(f"기준 이미지 불러오기 및 분석 시작: {reference_avg_saturation}")
-
+    print(f"정상 이미지 로드 시작: {reference_image_path}")
     if not os.path.exists(reference_image_path):
         print(f"기준 이미지 파일이 존재하지 않습니다: {reference_image_path}")
+        reference_avg_saturation = None
         return False
-    
-    # 이미지 읽기
     reference_img = cv2.imread(reference_image_path)
     if reference_img is None:
         print(f"오류: 기준 이미지 파일을 읽을 수 없습니다 - {reference_image_path}")
+        reference_avg_saturation = None
         return False
-
-    # 평균 채도 계산
+    
     avg_saturation = calculate_average_saturation(reference_img)
     if avg_saturation is not None:
         reference_avg_saturation = avg_saturation
@@ -70,6 +68,7 @@ def load_and_analyze_reference_image(reference_image_path):
         return True
     else:
         print(f"정상 이미지 평균 채도 계산 실패: {reference_avg_saturation}")
+        reference_avg_saturation = None
         return False
     
 def analyze_image_for_defect(image_path):
