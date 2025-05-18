@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import shutil
+import urllib.parse
 
 # 현재 파일(main_producer.py)이 있는 디렉토리
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -22,7 +23,7 @@ IMAGE_SOURCE_FOLDER = os.path.join(BASE_DIR, IMAGE_SOURCE_RELATIVE_FOLDER)
 PROCESSED_FOLDER = os.path.join(BASE_DIR, PROCESSED_RELATIVE_FOLDER)
 WEB_PROCESSED_IMAGE_FOLDER = os.path.join(BASE_DIR, "media", PROCESSED_IMAGES_MEDIA_SUBFOLDER_NAME)
 
-def process_images_from_folder(folder_path):
+def process_images_from_folder(folder_path, producer, topic):
     """
     지정된 폴더 내의 이미지 파일들을 처리
     """
@@ -57,7 +58,30 @@ def process_images_from_folder(folder_path):
 
             is_defect, result_info = analyze_image_for_defect(image_path)  # 물품이 불량인지 확인
             print(f"결과 정보: {result_info}")
-            #print(f"불량 여부: {is_defect}, 결과 정보: {result_info}")        
+            #print(f"불량 여부: {is_defect}, 결과 정보: {result_info}") 
+
+            web_image_dest_path = os.path.join(WEB_PROCESSED_IMAGE_FOLDER, filename)
+
+            try:
+                # 처리된 웹에서 보여주기 위한 이미지 경로로 이동
+                shutil.copy(image_path, web_image_dest_path)
+
+                web_image_relative_path = os.path.join(PROCESSED_IMAGES_MEDIA_SUBFOLDER_NAME, filename)
+
+                web_image_url = urllib.parse.urljoin(WEB_IMAGE_URL_BASE, web_image_relative_path.replace('\\', '/'))
+                #print(f"web_image_url: {web_image_url}")
+
+                result_info['web_image_url'] = web_image_url
+
+                print(f"웹 서비스 폴더로 이미지 복사 및 URL 추가: {web_image_url}")
+            except Exception as e:
+                print(f"웹 서비스 폴더로 이미지 복사 중 오류 발생: {e}")
+                result_info['web_image_url'] = None 
+                result_info['web_copy_error'] = str(e)
+
+            # 불량 여부에 따라 Kafka로 알림 전송
+            if is_defect:
+                
 
 if __name__ == "__main__":
     #print(REFERENCE_IMAGE_PATH)        # data/normal/normal_reference.jpg
@@ -65,4 +89,30 @@ if __name__ == "__main__":
     #print(PROCESSED_FOLDER)            # data/processed/
     #print(WEB_PROCESSED_IMAGE_FOLDER)  # media\processed_images
 
-    load_and_analyze_reference_image(REFERENCE_IMAGE_RELATIVE_PATH)
+    # 정상 채도 계산
+    is_analyzed_success = load_and_analyze_reference_image(REFERENCE_IMAGE_RELATIVE_PATH)
+
+    if not is_analyzed_success:
+        print("정상 이미지 분석 실패. 프로그램을 종료합니다.")
+        sys.exit(1)
+
+    # kafka producer 객체 생성
+    producer = create_kafka_producer(KAFKA_BOOTSTRAP_SERVERS)
+    if producer:
+        print("Kafka producer 생성 완료")
+
+        # 이미지 처리 시작
+        process_images_from_folder(IMAGE_SOURCE_FOLDER, producer, DEFECT_ALERTS_TOPIC)
+        
+        print("모든 메시지 전송 완료 대기...")
+
+        producer.flush()
+
+        producer.close()
+
+        print("시스템 종료")
+    else:
+        print("Kafka producer 생성 실패")
+        sys.exit(1)
+
+    print("main_producer.py 끝")
