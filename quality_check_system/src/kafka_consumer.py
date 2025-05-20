@@ -4,27 +4,10 @@ import time
 import sqlite3
 import os
 import sys
-try:
-    from src.config import KAFKA_BOOTSTRAP_SERVERS
-    from src.config import DEFECT_ALERTS_TOPIC
-    from src.config import CONSUMER_GROUP_ID
-    from src.config import DATABASE_RELATIVE_PATH
-except ImportError:
-    print("상대 경로 임포트 실패.")
-    try:
-        current_dir = os.path.dirname(os.path.abspath(__file__)) # src 폴더 절대 경로
-        project_root = os.path.dirname(current_dir) # 프로젝트 루트 절대 경로
-
-        if project_root not in sys.path:
-             sys.path.insert(0, project_root)
-        from src.config import KAFKA_BOOTSTRAP_SERVERS
-        from src.config import DEFECT_ALERTS_TOPIC
-        from src.config import CONSUMER_GROUP_ID
-        from src.config import DATABASE_RELATIVE_PATH
-    except ImportError as e:
-        print(f"FATAL ERROR: config 모듈을 임포트할 수 없습니다. 경로 또는 파일 존재 여부를 확인하세요: {e}")
-        sys.exit(1) # 프로그램 종료
-
+from src.config import KAFKA_BOOTSTRAP_SERVERS
+from src.config import DEFECT_ALERTS_TOPIC
+from src.config import CONSUMER_GROUP_ID
+from src.config import DATABASE_RELATIVE_PATH
 
 def init_db(db_path):
     """
@@ -36,6 +19,8 @@ def init_db(db_path):
         db_dir = os.path.dirname(db_path)
         if db_dir and not os.path.exists(db_dir):
             os.makedirs(db_dir, exist_ok=True)
+        
+        print(f"데이터베이스 위치: {db_dir}")
         
         # SQLite DB 연결
         conn = sqlite3.connect(db_path)
@@ -126,7 +111,7 @@ def create_kafka_consumer(topic=DEFECT_ALERTS_TOPIC, bootstrap_servers=KAFKA_BOO
 
 def start_consuming_alerts(consumer, db_conn):
     """
-    Kafka 토픽에서 메시지를 지속적을 수신하고 처리한다.
+    Kafka 토픽에서 메시지를 지속적으로 수신하고 처리한다.
     수신된 불량 정보를 db_conn을 사용하여 데이터베이스에 저장한다.
     """
     if consumer is None:

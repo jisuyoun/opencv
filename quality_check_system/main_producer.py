@@ -81,7 +81,19 @@ def process_images_from_folder(folder_path, producer, topic):
 
             # 불량 여부에 따라 Kafka로 알림 전송
             if is_defect:
-                
+                print(f"불량 감지! Kafka로 알림 전송")
+                send_defect_alert(producer, topic, result_info)
+            elif 'error' in result_info:
+                print(f"이미지 분석 중 오류 발생 또는 로드 실패: {result_info.get('error')}")
+            
+            processed_image_path = os.path.join(PROCESSED_FOLDER, filename)
+            try:
+                os.rename(image_path, processed_image_path)
+                print(f"원본 이미지 이동 완료: {processed_image_path}")
+            except OSError as e:
+                print(f"원본 이미지 이동 중 오류 발생: {e}")
+
+            time.sleep(0.5)
 
 if __name__ == "__main__":
     #print(REFERENCE_IMAGE_PATH)        # data/normal/normal_reference.jpg
@@ -107,7 +119,6 @@ if __name__ == "__main__":
         print("모든 메시지 전송 완료 대기...")
 
         producer.flush()
-
         producer.close()
 
         print("시스템 종료")
