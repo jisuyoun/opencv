@@ -24,3 +24,7 @@ urlpatterns = [
 
     path('', include('quality_app.urls')),  # Include the URLs from the quality_app
 ]
+ 
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    from django.conf.urls import include
