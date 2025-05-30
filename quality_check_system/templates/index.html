@@ -1,14 +1,96 @@
+{% load static %} 
+
 <!DOCTYPE html>
 <html lang="ko">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>품질 관리 대시보드</title>
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>품질 관리 이상 감지 대시보드</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
 
-    <body>
-        <div>테스트</div>
+<body>
+    <header class="header">
+        <div>
+            <h1>QualityCheck AI</h1>
+            <div class="subtitle">물품 품질 검사 시스템</div>
+        </div>
+        <div class="status-indicator">
+            <div class="status-dot"></div>
+            <span>불량 감지 시스템</span>
+        </div>
+    </header>
 
-    </body>
+    {# 메인 콘텐츠 컨테이너 #}
+    <div class="main-container">
+
+        <div class="alert-banner">
+            <div class="alert-icon">⚠</div>
+            <div class="alert-content">
+                <h3>불량품 감지됨</h3>
+                <p>검사 시간: <span id="currentTime"></span> 
+                {# 예시: <p>감지 시간: {{ latest_defect.timestamp|date:"Y-m-d H:i:s" }} | 유형: {{ latest_defect.defect_type }}</p> #}
+            </div>
+        </div>
+
+        {# 콘텐츠 그리드 (이미지 섹션과 정보 섹션을 나눔) #}
+        <div class="content-grid">
+            <div class="image-section">
+                <div class="image-container">
+                    <h3 style="margin-bottom: 15px; color: #475569;">불량품 이미지</h3>
+                    {# 불량품 이미지 표시 영역 #}
+                    <div class="product-image">
+                         {% if defects and defects.0.web_image_url %}
+                             <img src="{{ defects.0.web_image_url }}" alt="불량품 이미지" style="max-width: 100%; height: auto;">
+                         {% else %}
+                             <div class="product-mock" style="width: 100%; height: 300px; background-color: #eee; text-align: center; line-height: 300px;">이미지 준비 중 또는 없음</div>
+                         {% endif %}
+                        <div class="defect-highlight"></div>
+                        <div class="defect-point"></div>
+                    </div>
+                    <div class="zoom-controls">
+                        <button class="zoom-btn" onclick="zoomIn()">+</button>
+                        <button class="zoom-btn" onclick="zoomOut()">−</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="info-header">
+                    <h2>물품 정보 및 분석 결과</h2>
+                </div>
+
+                <div class="section-title defect-title">불량 분석 결과</div>
+                <div class="info-grid">
+                     {% if defects and defects.0 %} 
+                        <div class="info-label">불량 유형:</div>
+                        <div class="info-value" style="color: #dc2626;">{{ defects.0.defect_type|default:"N/A" }}</div>
+
+                         {# 분석 메시지 필드 추가 #}
+                         <div class="info-label">메시지:</div>
+                        <div class="info-value">{{ defects.0.message|default:"분석 메시지 없음" }}</div>
+
+                     {% else %}
+                         {# 불량 기록이 없는 경우 #}
+                        <div class="info-label">상태:</div>
+                        <div class="info-value">불량 기록 없음</div>
+                     {% endif %}
+                </div>
+
+                {# 액션 버튼 (JavaScript 연동) #}
+                <div class="action-buttons">
+                    <button class="btn btn-danger" onclick="confirmDefect()">불량 확정</button>
+                    <button class="btn btn-secondary" onclick="reInspect()">재검사</button>
+                    <button class="btn btn-success" onclick="generateReport()">보고서</button>
+                    <button class="btn btn-primary" onclick="nextItem()">다음</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="timestamp" id="timestamp"></div>
+
+    <script src="{% static 'js/script.js' %}"></script>
+
+</body>
 </html>
-

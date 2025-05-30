@@ -24,7 +24,6 @@ def init_db(db_path):
         
         # SQLite DB 연결
         conn = sqlite3.connect(db_path)
-
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
@@ -52,6 +51,8 @@ def init_db(db_path):
             conn.close()
         return None
     
+# quality_check_system/src/kafka_consumer.py
+
 def save_defect_to_db(conn, defect_info):
     """
     불량 정보를 SQLite DB에 저장
@@ -67,25 +68,23 @@ def save_defect_to_db(conn, defect_info):
         reference_saturation = defect_info.get("reference_saturation")
         tolerance = defect_info.get("tolerance")
         message = defect_info.get("message")
-        timestamp = defect_info.get("timestamp")
+        timestamp_ms = defect_info.get("timestamp") # Kafka 타임스탬프는 밀리초 단위
+        timestamp_iso = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timestamp_ms / 1000)) if timestamp_ms is not None else None
 
-        timestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timestamp / 1000))
 
-        # INSERT
+        # INSERT 쿼리
         cursor.execute('''
             INSERT INTO defects_table (image_path, web_image_url, defect_type, current_saturation, reference_saturation, tolerance, message, timestamp)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)               
-        ''', image_path, web_image_url, defect_type, current_saturation, reference_saturation, tolerance, message, timestamp)
+        ''', (image_path, web_image_url, defect_type, current_saturation, reference_saturation, tolerance, message, timestamp_iso)) 
 
         conn.commit()
-        print(f"불량 정보 저장 성공: {URL: {web_image_url}}")
+        print(f"불량 정보 저장 성공: URL: {web_image_url}")
 
     except Exception as e:
         print(f"불량 정보 저장 실패: {e}")
         if conn:
             conn.rollback()
-            conn.close()
-        return None
     
 def create_kafka_consumer(topic=DEFECT_ALERTS_TOPIC, bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS, group_id=CONSUMER_GROUP_ID):
     """
@@ -102,7 +101,7 @@ def create_kafka_consumer(topic=DEFECT_ALERTS_TOPIC, bootstrap_servers=KAFKA_BOO
             auto_offset_reset='earliest',
             enable_auto_commit=True  # 메시지를 처리한 후 자동으로 오프셋 커밋
         )
-        print("Kafka consumer 생성 성공. 토픽: '{topic}', 그룹: '{group_id}'")
+        print(f"Kafka consumer 생성 성공. 토픽: '{topic}', 그룹: '{group_id}'")
         return consumer
     
     except Exception as e:

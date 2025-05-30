@@ -15,7 +15,7 @@ class Defect(models.Model):
     timestamp = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        db_table = 'defects'
+        db_table = 'defects_table'
         managed = False # Consumer 스크립트가 직접 테이블 생성하고 관리
         ordering = ['-timestamp'] # 최신 기록부터 정렬
 

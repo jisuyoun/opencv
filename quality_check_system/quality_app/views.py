@@ -50,4 +50,5 @@ def dashboard_view(request):
             'total_to_process_images': total_to_process_images
         }
 
+        print("템플릿 'index.html' 렌더링 시작")
         return render(request, 'index.html', context)

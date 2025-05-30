@@ -1,16 +1,20 @@
+# quality_check_system/main_producer.py
+
 import os
 import sys
 import time
 import shutil
-import urllib.parse
+import urllib.parse # URL 경로 생성을 위해 임포트
 
 # 현재 파일(main_producer.py)이 있는 디렉토리
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
 
-from src.image_processor import analyze_image_for_defect, load_and_analyze_reference_image, load_and_analyze_reference_image
+# 우리가 만든 모듈들을 임포트합니다.
+from src.image_processor import analyze_image_for_defect, load_and_analyze_reference_image # load_and_analyze_reference_image 중복 임포트 제거
 from src.kafka_producer import create_kafka_producer, send_defect_alert
 
+# config에서 설정 임포트
 from src.config import (
     KAFKA_BOOTSTRAP_SERVERS, DEFECT_ALERTS_TOPIC,
     REFERENCE_IMAGE_RELATIVE_PATH, # config에서 기준 이미지 상대 경로 임포트
@@ -21,7 +25,7 @@ from src.config import (
 REFERENCE_IMAGE_PATH = os.path.join(BASE_DIR, REFERENCE_IMAGE_RELATIVE_PATH)
 IMAGE_SOURCE_FOLDER = os.path.join(BASE_DIR, IMAGE_SOURCE_RELATIVE_FOLDER)
 PROCESSED_FOLDER = os.path.join(BASE_DIR, PROCESSED_RELATIVE_FOLDER)
-WEB_PROCESSED_IMAGE_FOLDER = os.path.join(BASE_DIR, "media", PROCESSED_IMAGES_MEDIA_SUBFOLDER_NAME)
+WEB_PROCESSED_IMAGE_FOLDER = os.path.join(BASE_DIR, "media", PROCESSED_IMAGES_MEDIA_SUBFOLDER_NAME) # 변수 값 사용
 
 def process_images_from_folder(folder_path, producer, topic):
     """
@@ -66,10 +70,9 @@ def process_images_from_folder(folder_path, producer, topic):
                 # 처리된 웹에서 보여주기 위한 이미지 경로로 이동
                 shutil.copy(image_path, web_image_dest_path)
 
-                web_image_relative_path = os.path.join(PROCESSED_IMAGES_MEDIA_SUBFOLDER_NAME, filename)
-
-                web_image_url = urllib.parse.urljoin(WEB_IMAGE_URL_BASE, web_image_relative_path.replace('\\', '/'))
-                #print(f"web_image_url: {web_image_url}")
+                web_image_relative_path_in_media = os.path.join(PROCESSED_IMAGES_MEDIA_SUBFOLDER_NAME, filename)
+                web_image_relative_path = web_image_relative_path_in_media.replace('\\', '/')
+                web_image_url = urllib.parse.urljoin(WEB_IMAGE_URL_BASE, web_image_relative_path)
 
                 result_info['web_image_url'] = web_image_url
 
@@ -82,6 +85,9 @@ def process_images_from_folder(folder_path, producer, topic):
             # 불량 여부에 따라 Kafka로 알림 전송
             if is_defect:
                 print(f"불량 감지! Kafka로 알림 전송")
+                inspection_time = time.strftime('%Y-%m-%d %H:%M:%S')
+                result_info['inspection_time'] = inspection_time
+
                 send_defect_alert(producer, topic, result_info)
             elif 'error' in result_info:
                 print(f"이미지 분석 중 오류 발생 또는 로드 실패: {result_info.get('error')}")
@@ -102,19 +108,19 @@ if __name__ == "__main__":
     #print(WEB_PROCESSED_IMAGE_FOLDER)  # media\processed_images
 
     # 정상 채도 계산
-    is_analyzed_success = load_and_analyze_reference_image(REFERENCE_IMAGE_RELATIVE_PATH)
+    is_analyzed_success = load_and_analyze_reference_image(REFERENCE_IMAGE_PATH)
 
     if not is_analyzed_success:
         print("정상 이미지 분석 실패. 프로그램을 종료합니다.")
         sys.exit(1)
 
     # kafka producer 객체 생성
-    producer = create_kafka_producer(KAFKA_BOOTSTRAP_SERVERS)
+    producer = create_kafka_producer(KAFKA_BOOTSTRAP_SERVERS) # 인자 추가
     if producer:
         print("Kafka producer 생성 완료")
 
         # 이미지 처리 시작
-        process_images_from_folder(IMAGE_SOURCE_FOLDER, producer, DEFECT_ALERTS_TOPIC)
+        process_images_from_folder(IMAGE_SOURCE_FOLDER, producer, DEFECT_ALERTS_TOPIC) # 인자 추가
         
         print("모든 메시지 전송 완료 대기...")
 

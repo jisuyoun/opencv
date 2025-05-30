@@ -1,0 +1,245 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    background-color: #e9eef2;
+    color: #333;
+}
+
+.header {
+    background-color: #fff;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header div {
+    text-align: left; 
+}
+
+.header h1 {
+    color: #0056b3;
+    margin-bottom: 5px;
+}
+
+.header .subtitle {
+    font-size: 1em;
+    color: #777;
+    margin-top: 0; 
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    font-size: 1.1em;
+    color: #4CAF50; 
+}
+
+.status-indicator.alert {
+    color: #f44336; 
+}
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #4CAF50;
+    margin-right: 8px;
+}
+
+.status-dot.alert {
+    background-color: #f44336;
+}
+
+.main-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.alert-banner {
+    display: flex;
+    align-items: center;
+    background-color: #fff3cd;
+    border-radius: 7px;
+    border: 1px solid #ffeb3b;
+    color: #856404;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.alert-icon {
+    font-size: 2.5em;
+    margin-right: 15px;
+}
+
+.alert-content h3 {
+    margin: 0;
+    font-size: 1.4em;
+    color: #c00;
+}
+
+.alert-content p {
+    margin: 5px 0 0;
+    font-size: 0.9em;
+}
+
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.section-title {
+    font-size: 1.3em;
+    color: #334155;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 5px;
+}
+
+.defect-title {
+    color: #dc2626;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.info-label {
+    font-weight: bold;
+    color: #475569;
+    text-align: right;
+    padding-right: 10px;
+}
+
+.info-value {
+    color: #64748b;
+}
+
+.severity-high {
+    color: #ef4444;
+    font-weight: bold;
+}
+
+.recommendation-box {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 7px;
+    padding: 15px;
+}
+
+.recommendation-box ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.recommendation-box li {
+    margin-bottom: 7px;
+    padding-left: 25px;
+    position: relative;
+}
+
+.recommendation-box li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #16a34a;
+    font-weight: bold;
+}
+
+.action-buttons {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.btn {
+    border: none;
+    color: white;
+    padding: 12px 24px;
+    margin: 5px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+    font-size: 1em;
+    min-width: 100px;
+}
+
+.btn-primary {
+    background-color: #007bff;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+}
+
+.btn-success {
+    background-color: #28a745;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+}
+
+.btn:hover {
+    opacity: 0.8;
+}
+
+.timestamp {
+    text-align: center;
+    margin-top: 20px;
+    color: #9ca3af;
+}
+
+/* 이미지 관련 스타일 (목업 및 하이라이트) */
+.product-image {
+    position: relative; 
+    width: 100%;
+    max-width: 400px; 
+    margin: auto; 
+    border: 1px solid #ddd;
+    overflow: hidden;
+}
+
+.product-mock, .defect-highlight, .defect-point {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.product-mock {
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #666;
+    font-size: 1.2em;
+}
+
+.defect-highlight {
+    border: 2px solid yellow; 
+    opacity: 0.5; 
+    top: 30%; left: 40%; width: 20%; height: 10%; 
+}
+
+.defect-point {
+     width: 10px;
+     height: 10px;
+     background-color: red; 
+     border-radius: 50%;
+     top: 35%; left: 45%;
+     transform: translate(-50%, -50%);
+}
