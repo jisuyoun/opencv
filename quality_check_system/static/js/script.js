@@ -12,5 +12,9 @@ document.addEventListener('DOMContentLoaded', function() {
         updateTime();
         setInterval(updateTime, 1000);
     }
-
+    console.log("--------------")
+    const defectsDataElement = document.getElementById('defects_data');
+    //const defectsJsonString = defectsDataElement.textContent;
+    //const defects = JSON.parse(defectsJsonString);
+    console.log(defectsDataElement); 
 });
