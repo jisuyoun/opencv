@@ -1,3 +1,5 @@
+var nowId = "";
+
 // 페이지 로드 시 현재 시간 표시
 document.addEventListener('DOMContentLoaded', function() {
     const currentTimeSpan = document.getElementById('currentTime');
@@ -13,8 +15,18 @@ document.addEventListener('DOMContentLoaded', function() {
         setInterval(updateTime, 1000);
     }
     console.log("--------------")
-    const defectsDataElement = document.getElementById('defects_data');
-    //const defectsJsonString = defectsDataElement.textContent;
-    //const defects = JSON.parse(defectsJsonString);
-    console.log(defectsDataElement); 
+        const defectsDataElement = document.getElementById('defects-data');
+    let defects = []; // 기본값: 빈 배열
+    if (defectsDataElement) {
+        try {
+            defects = JSON.parse(defectsDataElement.textContent);
+            defects.forEach (function(item) {
+                console.log("불량 기록 데이터:", item); 
+            })
+        } catch (error) {
+            console.error("불량 기록 데이터 파싱 중 오류 발생:", error);
+        }
+    } else {
+        console.warn("defects-data 스크립트 태그를 찾을 수 없습니다.");
+    }
 });

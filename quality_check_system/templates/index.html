@@ -94,6 +94,8 @@
 
     <div class="timestamp" id="timestamp"></div>
 
+    {{ defects|json_script:"defects-data" }}
+
     <script src="{% static 'js/script.js' %}"></script>
 
 </body>
