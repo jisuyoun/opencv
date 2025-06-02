@@ -1,7 +1,9 @@
 from django.shortcuts import render
-from .models import Defect 
+from .models import Defect, ConfirmDefect
 import os
 from quality_check_system import settings
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from src.config import IMAGE_SOURCE_RELATIVE_FOLDER, PROCESSED_RELATIVE_FOLDER
 
 
@@ -21,7 +23,7 @@ def dashboard_view(request):
 
     # 1. 데이터베이스에서 불량 기록 목록을 가져오기
     try:
-        defects_queryset = Defect.objects.all() .order_by('-timestamp')
+        defects_queryset = Defect.objects.all().order_by('timestamp')
 
         # --- QuerySet을 JSON 직렬화 가능한 딕셔너리의 리스트 형태로 변환 ---
         defects_list = list(defects_queryset.values())
@@ -73,3 +75,33 @@ def dashboard_view(request):
 
     print("템플릿 'index.html' 렌더링 시작")
     return render(request, 'index.html', context)
+
+@api_view(['POST'])
+def confirm_defect(request):
+    """
+    불량 확정 버튼 클릭시 테이블에 저장
+    """
+    if request.method == 'POST':
+        confirm_id = request.data.get("confirm_id")
+        if (confirm_id is None):
+            return Response({"error": "원본 불량 기록 ID가 제공되지 않았습니다."}, status=400)
+        
+        try:
+            confirm_id_innstance = Defect.objects.get(id=confirm_id)
+
+            confirmed_defect_instance = ConfirmDefect(confirm_defect=confirm_id_innstance)
+            confirmed_defect_instance.save() # 저장
+
+            response_data = {
+                "id": confirmed_defect_instance.id,
+                "original_defect_id": confirmed_defect_instance.confirm_defect.id,
+                "confirmation_timestamp": confirmed_defect_instance.confirm_timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+                "message": "불량 기록이 성공적으로 확정되었습니다."
+            }
+            return Response(response_data, status=201)
+
+        except Exception as e:
+            print(f"불량 확정 중 오류 발생: {e}")
+            return Response({"error": f"불량 확정 처리 중 오류 발생: {str(e)}"}, status=500)
+    
+    return Response({"error": "POST 요청만 허용됩니다."}, status=405) 

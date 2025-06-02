@@ -5,6 +5,6 @@ from . import views
 app_name = 'quality_app'
 
 urlpatterns = [
-    # 이 프로젝트에서는 '' 패턴은 웹사이트의 루트 경로('/')에 매핑된다.
     path('', views.dashboard_view, name='dashboard'),
+    path('api/confirm_defect/', views.confirm_defect, name='confirm_defects_api')
 ]

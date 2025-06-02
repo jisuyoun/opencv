@@ -1,7 +1,8 @@
 from django.db import models
 
-# Create your models here.
+# 불량 확정 전 테이블
 class Defect(models.Model):
+    id = models.AutoField(primary_key=True)
     # 원본 파일 절대 경로
     image_path = models.TextField(blank=True, null=True)
     # 웹에서 접근 가능한 이미지 URL
@@ -15,10 +16,25 @@ class Defect(models.Model):
     timestamp = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        db_table = 'defects_table'
+        db_table = "defects_table"
         managed = False # Consumer 스크립트가 직접 테이블 생성하고 관리
-        ordering = ['-timestamp'] # 최신 기록부터 정렬
+        ordering = ["-timestamp"] # 최신 기록부터 정렬
+
+# 불량 확정 테이블
+class ConfirmDefect(models.Model):
+    confirm_defect = models.ForeignKey(
+        Defect,
+        on_delete = models.CASCADE,
+        related_name = "confirm"
+    )
+    
+    confirm_timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "confirmed_defects"
+        managed = True
+        ordering = ["-confirm_timestamp"]
 
     def __str__(self):
-        return f"Defect {self.id} ({self.defect_type}) at {self.timestamp}"
+        return f"Confirmed Defect {self.id} (Original ID: {self.confirm_id}) at {self.confirm_timestamp}"
     
