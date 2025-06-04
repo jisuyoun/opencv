@@ -41,7 +41,7 @@
                         {% if defects and defects.0.web_image_url %}
                              <img id="product-image" src="{{ defects.0.web_image_url }}" alt="불량품 이미지" style="max-width: 100%; height: auto;">
                          {% else %}
-                             <div class="product-mock" style="width: 100%; height: 300px; background-color: #eee; text-align: center; line-height: 300px;">이미지 준비 중 또는 없음</div>
+                             <div class="product-mock" style="width: 100%; height: 300px; background-color: #eee; text-align: center; line-height: 300px; position: relative;">이미지 준비 중 또는 없음</div>
                          {% endif %}
                     </div>
                     <div class="move-controls">
