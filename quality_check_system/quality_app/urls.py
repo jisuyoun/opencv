@@ -6,5 +6,6 @@ app_name = 'quality_app'
 
 urlpatterns = [
     path('', views.dashboard_view, name='dashboard'),
-    path('api/confirm_defect/', views.confirm_defect, name='confirm_defects_api')
+    path('api/confirm_defect/', views.confirm_defect, name='confirm_defects_api'),
+    path('api/make_report/', views.make_report, name='make_report_api')
 ]

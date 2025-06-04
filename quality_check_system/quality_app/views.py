@@ -1,11 +1,16 @@
+from datetime import timedelta
+from django.utils import timezone
+from io import BytesIO
+from django.http import FileResponse, JsonResponse
 from django.shortcuts import render
+import openpyxl
 from .models import Defect, ConfirmDefect
 import os
 from quality_check_system import settings
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from src.config import IMAGE_SOURCE_RELATIVE_FOLDER, PROCESSED_RELATIVE_FOLDER
-
+from django.utils.encoding import escape_uri_path
 
 def dashboard_view(request):
     """
@@ -104,4 +109,57 @@ def confirm_defect(request):
             print(f"불량 확정 중 오류 발생: {e}")
             return Response({"error": f"불량 확정 처리 중 오류 발생: {str(e)}"}, status=500)
     
-    return Response({"error": "POST 요청만 허용됩니다."}, status=405) 
+    return Response({"error": "POST 요청만 허용됩니다."}, status=405)
+
+
+@api_view(['GET'])
+def make_report(request):
+    """
+    최근 7일 동안 확정된 불량 기록 목록을 반환하는 API
+    """
+    if request.method == "GET":
+        days_ago = timezone.now() - timedelta(days=7)
+        
+        # 7일 이내인 불량 기록들 조회
+        confirmed_defects = ConfirmDefect.objects.select_related("confirm_defect").filter(
+            confirm_timestamp__gte = days_ago
+        ).order_by("-confirm_timestamp")
+
+        # 엑셀 파일 생성
+        workbook = openpyxl.Workbook()
+        sheet = workbook.active
+        sheet.title = "최근 7일 동안 확정된 불량 보고서"
+
+        # 헤더 생성
+        headers = ["확정 ID", "확정 시간", "원본 불량 ID", "불량 유형", "메시지", "이미지 URL"]
+        sheet.append(headers)
+        
+        for confirmed_defect in confirmed_defects:
+            confirm_data = confirmed_defect.confirm_defect
+
+            data_item = [
+                confirmed_defect.id,
+                confirmed_defect.confirm_timestamp.strftime('%Y-%m-%d %H:%M:%S') if confirmed_defect.confirm_timestamp else 'N/A',
+                confirm_data.id if confirm_data else 'N/A', # 원본 Defect의 ID
+                confirm_data.defect_type if confirm_data else 'N/A', # 원본 Defect의 불량 유형
+                confirm_data.message if confirm_data else 'N/A', # 원본 Defect의 메시지
+                confirm_data.web_image_url if confirm_data else 'N/A', # 원본 Defect의 이미지 URL
+                confirm_data.timestamp.strftime('%Y-%m-%d %H:%M:%S') if confirm_data and confirm_data.timestamp else 'N/A',
+                confirm_data.timestamp.strftime('%Y-%m-%d %H:%M:%S') if confirm_data and confirm_data.timestamp else 'N/A',
+            ]
+
+            sheet.append(data_item)
+        
+        # 엑셀 파일 메모리 저장
+        excel_file = BytesIO()
+        workbook.save(excel_file)
+        excel_file.seek(0)
+
+        # 엑셀 파일 응답 생성
+        response = FileResponse(excel_file, as_attachment=True, filename=escape_uri_path("최근 7일간 품질보고서.xlsx"))
+        
+        response["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+        return response
+    
+    return JsonResponse({"error": "GET 요청만 허용됩니다."}, status=405)

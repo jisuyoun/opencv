@@ -159,3 +159,35 @@ function confirmDefect() {
         alert("불량 확정 실패: " + error.message)
     });
 }
+
+function generateReport() {
+    fetch("/api/make_report/", {
+        method: "GET",
+    }).then(response => {
+        if (!response.ok) {
+            return response.text().then(errorText => {
+                console.error("보고서 API 오류: " + errorText);
+                throw new Error(`HTTP 오류: ${response.status}, 상세: ${errorText}`);
+            });
+        }
+        return response.blob();
+    }).then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.style.display = "none";
+        a.href = url;
+        a.download = "최근 7일 간 품질보고서.xlsx";
+
+        document.body.appendChild(a);
+        a.click();
+
+        // 링크 제거 및 url 해제
+        window.URL.revokeObjectURL(url);
+        a.remove();
+
+        console.log("보고서 다운로드 시작...")
+    }).catch(error => {
+        console.error("보고서 요청 중 오류 발생: ", error);
+        alert("보고서 생성 실패: " + error.message);
+    });
+}
