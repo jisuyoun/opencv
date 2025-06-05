@@ -1,0 +1,18 @@
+# Python 관련 무시 파일
+.venv/
+__pycache__/
+*.pyc
+*.sqlite3
+
+# 데이터 파일 및 폴더 (Volume으로 관리할 대상)
+*.db
+data/
+media/
+
+# Docker 관련 파일 자체
+Dockerfile
+docker-compose.yml
+
+# Git 관련 파일
+.git/
+.gitignore

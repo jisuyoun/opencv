@@ -1,0 +1,59 @@
+services:
+  kafka:
+    image: bitnami/kafka:3.6.1
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka_data:/bitnami/kafka
+    environment:
+      - KAFKA_ENABLE_KRAFT=yes
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_KIND=both
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
+      - ALLOW-PLAINTEXT-LISTENER=yes
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+  django:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000 # 컨테이너 시작 시 실행할 명령어
+    ports:
+      - "8000:8000"
+    volumes:
+      - db_data:/app/data
+      - django_media:/app/media
+    environment:
+      - DATABASE_PATH=/app/data/quality_defects.db_data
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - MEDIA_ROOT=/app/media
+    depends_on:
+      - kafka
+  consumer:
+    build: .
+    command: python main_consumer.py
+    volumes:
+      - db_data:/app/data
+    environment:
+      - DATABASE_PATH=/app/data/quality_defects.db
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    depends_on:
+      - kafka
+  producer:
+    build: .
+    command: python main_producer.py
+    volumes:
+      - data_to_process:/app/data/to_process 
+      - db_data:/app/data 
+      - django_media:/app/media
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    depends_on:
+      - kafka
+    
+volumes:
+  kafka_data:
+  db_data:
+  django_media:
+  data_to_process:
+
+    
